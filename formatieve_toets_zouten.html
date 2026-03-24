@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Formatieve toets – Hoofdstuk 4 Zouten</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; background: #f4f4f4; color: #1a1a1a; padding: 1.5rem 1rem; }
+  .wrap { max-width: 660px; margin: 0 auto; }
+  h1 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+  .subtitle { font-size: 13px; color: #666; margin-bottom: 1.5rem; }
+  .progress-bar { height: 5px; background: #ddd; border-radius: 3px; margin-bottom: 1.5rem; }
+  .progress-fill { height: 5px; background: #1a73e8; border-radius: 3px; transition: width 0.4s; }
+  .section-badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 12px; margin-bottom: 8px; background: #e8f0fe; color: #1a56db; }
+  .section-badge.foutzoeker { background: #fef3e0; color: #b45309; }
+  .q-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 10px; padding: 1.25rem; margin-bottom: 1rem; }
+  .q-text { font-size: 15px; font-weight: 600; margin: 0 0 1rem; line-height: 1.5; }
+  .options { display: flex; flex-direction: column; gap: 8px; }
+  .opt { display: flex; align-items: flex-start; gap: 10px; padding: 10px 14px; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; font-size: 14px; background: #fff; transition: background 0.15s; }
+  .opt:hover { background: #f8f8f8; }
+  .opt.selected { border-color: #1a73e8; background: #e8f0fe; color: #1a56db; }
+  .opt.correct { border-color: #34a853; background: #e6f4ea; color: #137333; }
+  .opt.wrong { border-color: #ea4335; background: #fce8e6; color: #c5221f; }
+  .opt-label { font-weight: 700; min-width: 18px; }
+  .feedback { margin-top: 10px; font-size: 13px; padding: 10px 14px; border-radius: 8px; line-height: 1.6; }
+  .feedback.correct { background: #e6f4ea; color: #137333; border: 1px solid #a8d5b5; }
+  .feedback.wrong { background: #fce8e6; color: #c5221f; border: 1px solid #f5c0bb; }
+  .card-footer { margin-top: 12px; display: flex; justify-content: flex-end; }
+  .btn { padding: 8px 20px; border: 1px solid #ccc; border-radius: 6px; background: #fff; color: #1a1a1a; font-size: 14px; cursor: pointer; }
+  .btn:hover { background: #f0f0f0; }
+  .btn.primary { background: #1a73e8; color: #fff; border-color: #1a73e8; }
+  .btn.primary:hover { background: #1558b0; }
+  .btn:disabled { opacity: 0.35; cursor: default; }
+  .nav { display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; }
+  .q-counter { font-size: 13px; color: #666; }
+  .score-wrap { text-align: center; padding: 2.5rem 1rem; background: #fff; border-radius: 10px; border: 1px solid #e0e0e0; }
+  .score-big { font-size: 52px; font-weight: 700; color: #1a1a1a; }
+  .score-sub { font-size: 15px; color: #555; margin: 0.5rem 0 2rem; }
+  .section-results { text-align: left; margin: 1.5rem auto; max-width: 420px; }
+  .section-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; font-size: 14px; }
+  .sec-score { font-weight: 700; }
+  .sec-score.good { color: #137333; }
+  .sec-score.mid { color: #e37400; }
+  .sec-score.low { color: #c5221f; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Formatieve toets – Hoofdstuk 4 Zouten</h1>
+  <p class="subtitle">Scheikunde 4 havo &nbsp;·&nbsp; 15 vragen (incl. 3 foutzoekers) &nbsp;·&nbsp; Feedback aan het einde</p>
+  <div class="progress-bar"><div class="progress-fill" id="prog" style="width:0%"></div></div>
+  <div id="q-container"></div>
+  <div class="nav">
+    <button class="btn" id="btn-prev" onclick="nav(-1)" disabled>← Vorige</button>
+    <span class="q-counter" id="q-counter"></span>
+    <button class="btn" id="btn-next" onclick="nav(1)" disabled>Volgende →</button>
+  </div>
+</div>
+
+<script>
+const sections = [
+  { label: "Leerdoel 1 – Voorkennis", short: "Leerdoel 1" },
+  { label: "Leerdoel 2 – Oplossen van zouten", short: "Leerdoel 2" },
+  { label: "Leerdoel 3 – Samengestelde ionen", short: "Leerdoel 3" },
+  { label: "Leerdoel 4 – Milieu", short: "Leerdoel 4" },
+];
+
+const qs = [
+  {
+    s: 0,
+    q: "Wat is de elektronenconfiguratie van het Ca<sup>2+</sup>-ion?",
+    opts: ["2,8,8,2", "2,8,8", "2,8,2", "2,8,10"],
+    ans: 1,
+    fb: "Ca heeft elektronenconfiguratie 2,8,8,2. Het verliest 2 elektronen → Ca<sup>2+</sup> heeft configuratie 2,8,8 (edelgasconfiguratie van Ar)."
+  },
+  {
+    s: 0,
+    q: "Wat is de verhoudingsformule van aluminiumoxide?",
+    opts: ["AlO", "Al<sub>2</sub>O<sub>3</sub>", "Al<sub>3</sub>O<sub>2</sub>", "AlO<sub>3</sub>"],
+    ans: 1,
+    fb: "Al<sup>3+</sup> en O<sup>2−</sup>: kleinste gemene veelvoud van ladingen is 6 → 2 Al<sup>3+</sup> en 3 O<sup>2−</sup> → Al<sub>2</sub>O<sub>3</sub>."
+  },
+  {
+    s: 0,
+    q: "Hoe heet het zout met de formule FeCl<sub>3</sub>?",
+    opts: ["IJzerchloride", "IJzer(II)chloride", "IJzer(III)chloride", "IJzertrichloride"],
+    ans: 2,
+    fb: "Fe kan meerdere ladingen hebben. In FeCl<sub>3</sub> compenseert Fe de lading van 3 Cl<sup>−</sup>, dus Fe<sup>3+</sup> → ijzer(III)chloride."
+  },
+  {
+    s: 1,
+    q: "Je hebt een zout dat in Binas-tabel 45A de aanduiding 's' heeft. Wat betekent dit?",
+    opts: ["Het zout lost snel op", "Het zout is slecht oplosbaar in water", "Het zout is een sterk zuur", "Het zout heeft een zoute smaak"],
+    ans: 1,
+    fb: "In Binas tabel 45A staat: g = goed oplosbaar, m = matig oplosbaar, s = slecht oplosbaar."
+  },
+  {
+    s: 1,
+    q: "Wat is de juiste oplosvergelijking van calciumchloride (CaCl<sub>2</sub>)?",
+    opts: [
+      "CaCl<sub>2</sub> (s) → Ca<sup>2+</sup> (aq) + Cl<sup>−</sup> (aq)",
+      "CaCl<sub>2</sub> (s) → Ca<sup>2+</sup> (aq) + 2 Cl<sup>−</sup> (aq)",
+      "CaCl<sub>2</sub> (aq) → Ca (s) + Cl<sub>2</sub> (g)",
+      "Ca<sup>2+</sup> (aq) + 2 Cl<sup>−</sup> (aq) → CaCl<sub>2</sub> (s)"
+    ],
+    ans: 1,
+    fb: "Bij het oplossen valt het ionrooster uiteen: CaCl<sub>2</sub> (s) → Ca<sup>2+</sup> (aq) + 2 Cl<sup>−</sup> (aq). Let op de index 2 bij Cl."
+  },
+  {
+    s: 1,
+    q: "Wat is de indampvergelijking van een oplossing met Na<sup>+</sup> en SO<sub>4</sub><sup>2−</sup>?",
+    opts: [
+      "Na<sup>+</sup> (aq) + SO<sub>4</sub><sup>2−</sup> (aq) → NaSO<sub>4</sub> (s)",
+      "2 Na<sup>+</sup> (aq) + SO<sub>4</sub><sup>2−</sup> (aq) → Na<sub>2</sub>SO<sub>4</sub> (s)",
+      "Na<sup>+</sup> (aq) + SO<sub>4</sub><sup>2−</sup> (aq) → Na<sub>2</sub>SO<sub>4</sub> (s)",
+      "Na<sub>2</sub>SO<sub>4</sub> (s) → 2 Na<sup>+</sup> (aq) + SO<sub>4</sub><sup>2−</sup> (aq)"
+    ],
+    ans: 1,
+    fb: "Bij indampen slaan de ionen neer als zout. De verhouding is 2:1 → 2 Na<sup>+</sup> (aq) + SO<sub>4</sub><sup>2−</sup> (aq) → Na<sub>2</sub>SO<sub>4</sub> (s)."
+  },
+  {
+    s: 2,
+    q: "Wat is de formule van het sulfaation?",
+    opts: ["SO<sub>3</sub><sup>2−</sup>", "SO<sub>4</sub><sup>2−</sup>", "SO<sub>4</sub><sup>−</sup>", "S<sup>2−</sup>"],
+    ans: 1,
+    fb: "SO<sub>4</sub><sup>2−</sup> is het sulfaation (lading 2−). SO<sub>3</sub><sup>2−</sup> is sulfiet, S<sup>2−</sup> is het enkelvoudige sulfide-ion."
+  },
+  {
+    s: 2,
+    q: "Wat is de verhoudingsformule van ammoniumsulfaat?",
+    opts: ["NH<sub>4</sub>SO<sub>4</sub>", "(NH<sub>4</sub>)<sub>2</sub>SO<sub>4</sub>", "NH<sub>4</sub>(SO<sub>4</sub>)<sub>2</sub>", "N<sub>2</sub>H<sub>8</sub>SO<sub>4</sub>"],
+    ans: 1,
+    fb: "NH<sub>4</sub><sup>+</sup> heeft lading 1+, SO<sub>4</sub><sup>2−</sup> heeft lading 2−. Twee NH<sub>4</sub><sup>+</sup> compenseren één SO<sub>4</sub><sup>2−</sup> → (NH<sub>4</sub>)<sub>2</sub>SO<sub>4</sub>."
+  },
+  {
+    s: 2,
+    q: "Wat is de oplosvergelijking van ammoniumnitraat (NH<sub>4</sub>NO<sub>3</sub>)?",
+    opts: [
+      "NH<sub>4</sub>NO<sub>3</sub> (s) → NH<sub>4</sub><sup>+</sup> (aq) + NO<sub>3</sub><sup>−</sup> (aq)",
+      "NH<sub>4</sub>NO<sub>3</sub> (s) → N<sub>2</sub>H<sub>4</sub> (aq) + O<sub>3</sub> (aq)",
+      "NH<sub>4</sub>NO<sub>3</sub> (s) → 2 NH<sub>4</sub><sup>+</sup> (aq) + NO<sub>3</sub><sup>−</sup> (aq)",
+      "NH<sub>4</sub><sup>+</sup> (aq) + NO<sub>3</sub><sup>−</sup> (aq) → NH<sub>4</sub>NO<sub>3</sub> (s)"
+    ],
+    ans: 0,
+    fb: "Ammoniumnitraat valt uiteen in NH<sub>4</sub><sup>+</sup> en NO<sub>3</sub><sup>−</sup>, beide in verhouding 1:1."
+  },
+  {
+    s: 3,
+    q: "Hoe ontstaat eutrofiëring van oppervlaktewater?",
+    opts: [
+      "Uitstoot van CO<sub>2</sub> door industrie verhoogt de temperatuur van het water",
+      "Zware metalen binden zuurstof waardoor vissen sterven",
+      "Uitspoeling van nitraten en fosfaten uit kunstmest stimuleert overmatige algengroei",
+      "Verdamping van ammoniak verzuurt het water direct"
+    ],
+    ans: 2,
+    fb: "Nitraten en fosfaten uit kunstmest spoelen naar oppervlaktewater → algengroei → zuurstoftekort → sterfte waterorganismen."
+  },
+  {
+    s: 3,
+    q: "Wat zijn zware metalen?",
+    opts: [
+      "Metalen met een hoge smelttemperatuur",
+      "Metalen met een atoomnummer hoger dan dat van ijzer (Fe)",
+      "Metalen die zwaar zijn bij kamertemperatuur",
+      "Alle metalen in het d-blok van het periodiek systeem"
+    ],
+    ans: 1,
+    fb: "Zware metalen zijn metalen met een atoomnummer hoger dan dat van ijzer. Ze komen in kleine hoeveelheden in de bodem voor en zijn vaak giftig."
+  },
+  {
+    s: 3,
+    q: "Wat is de bijdrage van de veeteelt aan de stikstofproblematiek?",
+    opts: [
+      "Vee stoot NO<sub>x</sub> uit via verbranding van voer",
+      "Bacteriën in mest zetten ureum om in ammoniak (NH<sub>3</sub>), dat bijdraagt aan zure depositie",
+      "Mest verhoogt direct de concentratie nitraat in de lucht",
+      "Veeteelt verbruikt veel zuurstof waardoor stikstof vrijkomt"
+    ],
+    ans: 1,
+    fb: "Bacteriën in mest zetten ureum om in NH<sub>3</sub>. Ammoniak die verdampt draagt bij aan zure depositie en levert stikstofhoudende ionen aan de bodem."
+  },
+  {
+    s: 0,
+    tag: "foutzoeker",
+    q: "🔍 <em>Foutzoeker</em> – Hieronder staat een oplosvergelijking. Wat klopt er <u>niet</u>?<br><br><code>MgCl<sub>2</sub> (s) → Mg<sup>2+</sup> (aq) + Cl<sup>−</sup> (aq)</code>",
+    opts: [
+      "De toestandsaanduidingen (s) en (aq) kloppen niet",
+      "Mg<sup>2+</sup> is een onjuiste ionnotatie",
+      "Het Cl<sup>−</sup>-ion ontbreekt een index: het moet 2 Cl<sup>−</sup> zijn",
+      "De pijl moet een dubbele pijl (⇌) zijn"
+    ],
+    ans: 2,
+    fb: "In MgCl<sub>2</sub> zitten twee Cl<sup>−</sup>-ionen per formuleenheid. De correcte vergelijking is: MgCl<sub>2</sub> (s) → Mg<sup>2+</sup> (aq) + 2 Cl<sup>−</sup> (aq)."
+  },
+  {
+    s: 2,
+    tag: "foutzoeker",
+    q: "🔍 <em>Foutzoeker</em> – Een leerling schrijft de verhoudingsformule van calciumnitraat als volgt op:<br><br><code>Ca(NO<sub>3</sub>)<sub>1</sub></code><br><br>Er zijn twee fouten. Welke optie beschrijft beide fouten correct?",
+    opts: [
+      "Ca heeft lading 1+ en de haakjes zijn overbodig",
+      "De index 1 wordt niet genoteerd en Ca heeft lading 2+, dus de index moet 2 zijn: Ca(NO<sub>3</sub>)<sub>2</sub>",
+      "NO<sub>3</sub> is geen bestaand ion en de index klopt niet",
+      "De formule klopt, alleen de haakjes zijn overbodig bij index 1"
+    ],
+    ans: 1,
+    fb: "Twee fouten: (1) index 1 noteer je nooit — maar die geldt hier sowieso niet, want (2) Ca heeft lading 2+ en NO<sub>3</sub><sup>−</sup> heeft lading 1−, dus je hebt 2 nitraationen nodig → Ca(NO<sub>3</sub>)<sub>2</sub>."
+  },
+  {
+    s: 1,
+    tag: "foutzoeker",
+    q: "🔍 <em>Foutzoeker</em> – Een leerling schrijft de indampvergelijking van een kaliumsulfaatoplossing als volgt:<br><br><code>K<sup>+</sup> (aq) + SO<sub>4</sub><sup>2−</sup> (aq) → KSO<sub>4</sub> (s)</code><br><br>Wat klopt er niet?",
+    opts: [
+      "SO<sub>4</sub><sup>2−</sup> is geen bestaand ion",
+      "De toestandsaanduidingen zijn omgewisseld",
+      "De ladingsbalans klopt niet: er moeten 2 K<sup>+</sup>-ionen zijn → K<sub>2</sub>SO<sub>4</sub>",
+      "Er moet een dubbele pijl staan"
+    ],
+    ans: 2,
+    fb: "K<sup>+</sup> heeft lading 1+ en SO<sub>4</sub><sup>2−</sup> heeft lading 2−. Om neutraal te worden heb je 2 K<sup>+</sup> nodig. Correct: 2 K<sup>+</sup> (aq) + SO<sub>4</sub><sup>2−</sup> (aq) → K<sub>2</sub>SO<sub>4</sub> (s)."
+  },
+];
+
+let current = 0;
+let answers = new Array(qs.length).fill(null);
+
+function render() {
+  const q = qs[current];
+  document.getElementById('prog').style.width = Math.round((current / qs.length) * 100) + '%';
+  document.getElementById('q-counter').textContent = (current + 1) + ' / ' + qs.length;
+
+  let optsHTML = q.opts.map((o, i) => {
+    let cls = 'opt';
+    if (answers[current] === i) cls += ' selected';
+    return `<div class="${cls}" onclick="pick(${i})">
+      <span class="opt-label">${['A','B','C','D'][i]}</span>
+      <span>${o}</span>
+    </div>`;
+  }).join('');
+
+  const isLast = current === qs.length - 1;
+  const allAnswered = answers.every(a => a !== null);
+
+  document.getElementById('q-container').innerHTML = `
+    <div class="q-card">
+      <div class="section-badge ${q.tag === 'foutzoeker' ? 'foutzoeker' : ''}">${q.tag === 'foutzoeker' ? 'Foutzoeker – ' : ''}${sections[q.s].label}</div>
+      <p class="q-text">${current + 1}. ${q.q}</p>
+      <div class="options">${optsHTML}</div>
+      <div class="card-footer">
+        ${isLast
+          ? `<button class="btn primary" onclick="showScore()" ${allAnswered ? '' : 'disabled'}>Resultaat bekijken →</button>`
+          : `<button class="btn primary" onclick="nav(1)" ${answers[current] !== null ? '' : 'disabled'}>Volgende →</button>`
+        }
+      </div>
+    </div>`;
+
+  document.getElementById('btn-prev').disabled = current === 0;
+  document.getElementById('btn-next').disabled = answers[current] === null || isLast;
+}
+
+function pick(i) {
+  answers[current] = i;
+  render();
+}
+
+function nav(dir) {
+  current = Math.max(0, Math.min(qs.length - 1, current + dir));
+  render();
+}
+
+function showScore() {
+  const total = qs.length;
+  const correct = qs.filter((q, i) => answers[i] === q.ans).length;
+  const pct = Math.round((correct / total) * 100);
+  const msg = pct >= 80 ? "Goed gedaan! Je beheerst de stof goed." :
+              pct >= 50 ? "Bijna! Herhaal de leerdoelen waar je punten miste." :
+                          "Herhaal de stof en probeer het opnieuw.";
+
+  const secRows = sections.map((sec, si) => {
+    const secQs = qs.filter(q => q.s === si);
+    const secOk = secQs.filter(q => answers[qs.indexOf(q)] === q.ans).length;
+    const frac = secOk / secQs.length;
+    const cls = frac >= 0.8 ? 'good' : frac >= 0.5 ? 'mid' : 'low';
+    return `<div class="section-row">
+      <span>${sec.short}</span>
+      <span class="sec-score ${cls}">${secOk}/${secQs.length}</span>
+    </div>`;
+  }).join('');
+
+  const reviewHTML = qs.map((q, i) => {
+    const ok = answers[i] === q.ans;
+    return `<div class="q-card" style="margin-bottom:12px;">
+      <div class="section-badge ${q.tag === 'foutzoeker' ? 'foutzoeker' : ''}">${q.tag === 'foutzoeker' ? 'Foutzoeker – ' : ''}${sections[q.s].short}</div>
+      <p class="q-text" style="font-size:14px;">${i+1}. ${q.q}</p>
+      <div style="font-size:13px;margin-bottom:6px;">
+        <span style="color:#555;">Jouw antwoord: </span>
+        <span style="font-weight:700;color:${ok ? '#137333' : '#c5221f'};">${['A','B','C','D'][answers[i]]}. ${q.opts[answers[i]]}</span>
+        ${!ok ? `&nbsp;·&nbsp; <span style="color:#555;">Correct: </span><span style="font-weight:700;color:#137333;">${['A','B','C','D'][q.ans]}. ${q.opts[q.ans]}</span>` : ''}
+      </div>
+      <div class="feedback ${ok ? 'correct' : 'wrong'}">${ok ? '✓ ' : '✗ '}${q.fb}</div>
+    </div>`;
+  }).join('');
+
+  document.querySelector('.wrap').innerHTML = `
+    <div class="score-wrap">
+      <div class="score-big">${correct}/${total}</div>
+      <p class="score-sub">${msg}</p>
+      <div class="section-results">${secRows}</div>
+      <button class="btn primary" onclick="location.reload()" style="margin-bottom:2rem;">Opnieuw proberen</button>
+    </div>
+    <h2 style="font-size:16px;font-weight:700;margin:1.5rem 0 1rem;">Uitgebreide feedback per vraag</h2>
+    ${reviewHTML}`;
+}
+
+render();
+</script>
+</body>
+</html>
